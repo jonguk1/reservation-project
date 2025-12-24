@@ -1,0 +1,61 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.1.12'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Demo project for Spring Boot'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+    // 1. Web & Security (인증/인가)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // 2. JWT (자바에서 토큰 생성을 위한 라이브러리)
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+	// JPA 설정
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // H2 데이터베이스 (테스트 및 로컬 개발용)
+    implementation 'com.h2database:h2:2.2.224' // 버전을 명시적으로 적어보세요
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // MySQL (나중에 배포할 때 사용하므로 일단 두셔도 됩니다)
+    runtimeOnly 'com.h2database:h2'
+
+    // 4. Redis (대기열 및 분산 락 구현)
+    //implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    // Redis의 성능을 100% 활용하기 위한 Redisson 라이브러리
+    //implementation 'org.redisson:redisson-spring-boot-starter:3.25.0'
+
+    // 5. 유틸리티 (Lombok & Validation)
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // 6. 테스트 (JMeter 외에 코드 레벨의 테스트)
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:test-security'
+    
+    implementation 'org.springframework.boot:spring-boot-devtools'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
