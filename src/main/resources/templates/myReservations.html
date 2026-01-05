@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>나의 예약 내역</title>
+    <style>
+        table { width: 80%; border-collapse: collapse; margin: 20px auto; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        .back-btn { display: block; width: 100px; margin: 20px auto; text-align: center; text-decoration: none; color: blue; }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">[[${session.user.name}]]님의 예약 내역</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>예약 번호</th>
+                <th>상품명</th>
+                <th>예약 일시</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="res : ${reservations}">
+                <td th:text="${res.id}">1</td>
+                <td th:text="${res.goods.name}">상품명</td>
+                <td th:text="${#temporals.format(res.reservationDate, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01</td>
+            </tr>
+        </tbody>
+    </table>
+    <a href="/goods" class="back-btn">상품 목록으로</a>
+</body>
+</html>

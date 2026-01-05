@@ -41,7 +41,7 @@ public class SecurityConfig {
 
             // 5. OAuth2 로그인 설정
             .oauth2Login(oauth2 -> oauth2
-                .defaultSuccessUrl("/test-login", true) // 로그인 성공 시 이동할 주소
+                .defaultSuccessUrl("/goods", true) // 로그인 성공 시 이동할 주소
                 .userInfoEndpoint(userInfo -> userInfo
                     .userService(customOAuth2UserService)
                 )

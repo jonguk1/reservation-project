@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 예약 목록</title>
+    <style>
+        table { width: 80%; border-collapse: collapse; margin: 20px auto; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        button { background-color: #007bff; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; }
+        button:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+	<div style="text-align: right; width: 80%; margin: 10px auto;">
+	    <strong>[[${session.user.name}]]</strong>님 환영합니다! 
+	    <a href="/my-reservations">[내 예약 보기]</a>
+	</div>
+    <h2 style="text-align: center;">선착순 상품 목록</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>상품명</th>
+                <th>가격</th>
+                <th>남은 재고</th>
+                <th>예약하기</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${goods}">
+                <td th:text="${item.name}">상품명</td>
+                <td th:text="${item.price} + '원'">10,000원</td>
+                <td th:text="${item.stockQuantity} + '개'">50개</td>
+                <td>
+                    <button th:onclick="confirmReserve([[${item.id}]])">예약하기</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <script th:if="${param.success}">
+    	alert("예약이 성공적으로 완료되었습니다!");
+	</script>
+
+	<script th:if="${param.error}">
+    	alert("예약 실패: " + [[${param.error}]]);
+	</script>
+
+	<script>
+    	// 클릭 시 한 번 더 물어보는 기능 (선택사항)
+    	function confirmReserve(goodsId) {
+        	if (confirm("정말로 이 상품을 예약하시겠습니까?")) {
+            	location.href = "/reserve?goodsId=" + goodsId;
+        	}
+    	}
+	</script>
+</body>
+</html>
