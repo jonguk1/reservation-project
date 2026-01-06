@@ -1,11 +1,15 @@
 package com.kim.reservation.domain.goods;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -13,6 +17,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @Table(name = "goods")
+@AllArgsConstructor
+@Builder
 public class Goods {
 	
 	@Id
@@ -28,10 +34,16 @@ public class Goods {
 	@Column(nullable = false)
 	private Integer stockQuantity;
 	
-	public Goods(String name, Integer price, Integer stockQuantity) {
+	@Column
+	private LocalDateTime openTime;
+	
+	
+	//생성자
+	public Goods(String name, Integer price, Integer stockQuantity,LocalDateTime openTime) {
 		this.name=name;
 		this.price=price;
 		this.stockQuantity=stockQuantity;
+		this.openTime=openTime;
 	}
 	
 	// 재고를 줄이는 메서드
