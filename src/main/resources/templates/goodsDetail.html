@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>상품 상세 및 예약</title>
+    <style>
+        .container { text-align: center; margin-top: 50px; }
+        #timer { font-size: 2rem; color: red; font-weight: bold; margin: 20px 0; }
+        .btn-reserve { padding: 15px 30px; font-size: 1.2rem; cursor: pointer; border: none; border-radius: 5px; }
+        .btn-disabled { background-color: gray; cursor: not-allowed; color: white; }
+        .btn-active { background-color: #007bff; color: white; cursor: pointer; } /* 활성화 스타일 추가 */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 th:text="${item.name}">상품명</h1>
+        <p th:text="${item.price} + '원'">가격</p>
+        
+        <input type="hidden" id="openTime" th:value="${item.openTime}">
+
+        <div id="timer">계산 중...</div>
+
+        <button id="reserveBtn" class="btn-reserve btn-disabled" disabled onclick="startWaiting()">
+            예약 시작 전
+        </button>
+    </div>
+
+    <script th:inline="javascript">
+        const openTimeStr = document.getElementById("openTime").value;
+        const openTime = new Date(openTimeStr).getTime();
+        const reserveBtn = document.getElementById("reserveBtn");
+        const timerDisplay = document.getElementById("timer");
+
+        const countdown = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = openTime - now;
+
+            if (distance <= 0) {
+                clearInterval(countdown);
+                timerDisplay.innerHTML = "지금 바로 예약 가능!";
+                reserveBtn.disabled = false;
+                reserveBtn.classList.remove("btn-disabled");
+                reserveBtn.classList.add("btn-active"); // 활성화 색상 추가
+                reserveBtn.innerHTML = "예약하기";
+            } else {
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                timerDisplay.innerHTML = `예약 시작까지: ${hours}시 ${minutes}분 ${seconds}초`;
+            }
+        }, 1000);
+        
+        // Redis 대기열 진입 함수
+        function startWaiting() {
+            const goodsId = [[${item.id}]]; 
+        
+            fetch(`/api/waiting/join?goodsId=${goodsId}`, {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    alert("로그인이 필요합니다.");
+                    location.href = "/login";
+                    return;
+                }
+                return response.json();
+            })
+            .then(rank => {
+            	if (rank !== undefined) {
+                    //대기실로 이동
+                    location.href = `/waiting-room?goodsId=${goodsId}`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("대기열 진입 중 오류가 발생했습니다.");
+            });
+        }
+    </script>
+</body>
+</html>
