@@ -26,29 +26,35 @@ public class WaitingQueueService {
         String queueKey = QUEUE_KEY_PREFIX + goodsId;
         String activeKey = ACTIVE_KEY_PREFIX + goodsId;
         
-        //1.내가 이미 '입장 허가' 상태인지 확인
+        // 1. 입장 허가 상태 확인
         if(Boolean.TRUE.equals(redisTemplate.opsForSet().isMember(activeKey, userId))) {
-        	return 0L;// 이미 입장했으므로 0등으로 취급
+            return 0L;
         }
         
-        // 2. 현재 입장해서 작업 중인 인원 수 확인
+        // 2. 대기열 순번 확인
+        Long rank = redisTemplate.opsForZSet().rank(queueKey, userId);
+        
+        // 대기열에도 없고 입장 상태도 아니라면? (비정상 접근 대비)
+        if (rank == null) return null; 
+
+        // 3. 현재 입장 인원 확인 
         Long activeCount = redisTemplate.opsForSet().size(activeKey);
+        if (activeCount == null) activeCount = 0L;
         
-        // 3. 내 순서가 0번(1등)이고, 입장 인원이 여유가 있다면 '입장 처리'
-        Long rank= redisTemplate.opsForZSet().rank(queueKey, userId);
-        if(rank != null && rank == 0 &&(activeCount != null && activeCount < MAX_ALLOW_COUNT)) {
-        	// 입장 허가 명단에 추가
-        	redisTemplate.opsForSet().add(activeKey, userId);
-        	// 대기열에선 삭제
-        	redisTemplate.opsForSet().remove(activeKey, userId);
+        // 4. 입장 조건 확인
+        if(rank == 0 && activeCount < MAX_ALLOW_COUNT) {
+            redisTemplate.opsForSet().add(activeKey, userId);     
+            redisTemplate.opsForZSet().remove(queueKey, userId);
+            return 0L;
         }
-        // 내 앞 대기자 + 현재 작업자 수로 표시
-        return (rank != null) ? rank + activeCount : null;
+        
+        //대기 순번 반환
+        return rank + 1;
     }
     
     // 예약 완료 후 완전히 제거
     public void removeActiveUser(Long goodsId, String userId) {
         String activeKey = ACTIVE_KEY_PREFIX + goodsId;
-        redisTemplate.opsForZSet().remove(activeKey, userId);
+        redisTemplate.opsForSet().remove(activeKey, userId);
     }
 }

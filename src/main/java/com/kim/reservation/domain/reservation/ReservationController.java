@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.kim.reservation.domain.goods.Goods;
@@ -30,7 +31,8 @@ public class ReservationController {
 	
 	//예약하기
 	@GetMapping("/reserve")
-	public String reservePage(@RequestParam Long goodsId, HttpSession session) throws UnsupportedEncodingException {
+	public String reservePage(@RequestParam Long goodsId, HttpSession session,Model model) 
+			throws UnsupportedEncodingException {
 	    
 		Goods goods = goodsService.findById(goodsId);
 	    
@@ -56,13 +58,15 @@ public class ReservationController {
 
 	    try {
 	        // 3. DB 재고 감소 및 예약 내역 저장
-	        reservationService.reserve(user.getId(), goodsId);
+	    	Long reservationId = reservationService.reserve(user.getId(), goodsId);
 	        
 	        // 4.예약 성공 시 Redis 대기열에서 해당 유저 삭제
 	        waitingQueueService.removeActiveUser(goodsId, user.getId().toString());
 
-	        // 예약 성공 시 상품 목록으로 이동
-	        return "redirect:/goods?success=true";
+	        // 예약 성공 시 예약 폼으로 이동
+	        model.addAttribute("reservationId", reservationId);
+	        model.addAttribute("goods", goods);
+	        return "reserveForm";
 
 	    } catch (Exception e) {
 	    	// 예약 실패
@@ -89,6 +93,18 @@ public class ReservationController {
 		
 		return "myReservations";
 		
+	}
+	
+	
+	//예약 확정
+	@PostMapping("/reserve/confirm")
+	public String confirm(@RequestParam Long reservationId) {
+		try {
+			reservationService.confirmReservation(reservationId);
+			return "redirect:/goods?success=confirmed";
+		}catch (Exception e) {
+			return "redirect:/goods?error=" + e.getMessage();
+		}
 	}
 	
 	

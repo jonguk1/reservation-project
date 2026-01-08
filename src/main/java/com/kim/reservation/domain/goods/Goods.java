@@ -46,14 +46,19 @@ public class Goods {
 		this.openTime=openTime;
 	}
 	
-	// 재고를 줄이는 메서드
+	// 재고 줄이기
 	public void removeStock(int quantity) {
 		int restStock = this.stockQuantity - quantity;
-		if(restStock<0) {
+		if(restStock <= 0) {
 			throw new RuntimeException("재고가 부족합니다");
 		}
 		this.stockQuantity = restStock;
 	}
+	
+	//재고 복구 
+    public void addStock(int quantity) {
+        this.stockQuantity += quantity;
+    }
 	
 	
 	

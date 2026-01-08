@@ -23,17 +23,24 @@
         const goodsId = [[${goodsId}]];
         
         function checkRank() {
-            //순번 조회 API를 호출
             fetch(`/api/waiting/join?goodsId=${goodsId}`, { method: 'POST' })
             .then(response => response.json())
-            .then(rank => {
-                document.getElementById("count").innerText = rank;
-                document.getElementById("rank-display").innerText = rank + 1 + "번째";
+            .then(res => {
+                // 서버 응답이 객체일 경우(예: {data: 5})와 숫자일 경우 모두 대응
+                const rank = (res.data !== undefined) ? res.data : res;
 
-                // 내 순번이 0(1등)이 되면 실제 예약 페이지로 이동
+                console.log("현재 랭크:", rank); // 크롬 F12 콘솔에서 확인 가능
+
                 if (rank === 0) {
                     alert("내 차례입니다! 예약 페이지로 이동합니다.");
                     location.href = "/reserve?goodsId=" + goodsId;
+                    return;
+                }
+
+                // 정상적인 숫자일 때만 화면 표시
+                if (typeof rank === 'number') {
+                    document.getElementById("count").innerText = rank - 1; // 내 앞 대기 인원
+                    document.getElementById("rank-display").innerText = rank + "번째";
                 }
             });
         }

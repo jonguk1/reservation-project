@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>관리자 모니터링</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <h2>📊 실시간 예약 현황: <span th:text="${data.goodsName}">상품명</span></h2>
+    <hr>
+    <div class="row text-center">
+        <div class="col-md-3">
+            <div class="card bg-light p-3">
+                <h5>잔여 재고</h5>
+                <h2 class="text-primary" th:text="${data.totalStock}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light p-3">
+                <h5>대기열 인원</h5>
+                <h2 class="text-danger" th:text="${data.waitingCount}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light p-3">
+                <h5>결제 대기 (선점)</h5>
+                <h2 class="text-warning" th:text="${data.pendingCount}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-light p-3">
+                <h5>판매 완료</h5>
+                <h2 class="text-success" th:text="${data.confirmedCount}">0</h2>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        <button class="btn btn-info" onclick="location.reload()">새로고침</button>
+    </div>
+</body>
+</html>
