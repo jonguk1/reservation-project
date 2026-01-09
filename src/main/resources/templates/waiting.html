@@ -49,6 +49,22 @@
         setInterval(checkRank, 3000);
      	// 처음 진입 시 바로 한 번 실행
         checkRank();
+     	
+        function checkStatus() {
+            fetch(`/api/queue/status?goodsId=${goodsId}&userId=${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'PROCEED') {
+                    location.href = `/reserve?goodsId=${goodsId}`;
+                } else if (data.rank === -1) { 
+                    // Redis에서 키가 삭제되어 순위를 찾을 수 없는 경우
+                    alert("죄송합니다. 상품이 방금 품절되었습니다.");
+                    location.href = "/goods";
+                } else {
+                    document.getElementById('rank').innerText = data.rank;
+                }
+            });
+        }
     </script>
 </body>
 </html>

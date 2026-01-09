@@ -37,5 +37,10 @@ public class User {
         this.name = name;
         return this;
     }
+    
+    public String getRoleKey() {
+        // DB에 "ADMIN"이라고 저장되어 있다면 "ROLE_ADMIN"을 반환
+        return "ROLE_" + this.role;
+    }
 
 }

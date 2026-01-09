@@ -1,42 +1,47 @@
 package com.kim.reservation.domain.admin;
 
-import org.springframework.data.redis.core.RedisTemplate;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kim.reservation.domain.goods.Goods;
 import com.kim.reservation.domain.goods.GoodsRepository;
-import com.kim.reservation.domain.reservation.ReservationRepository;
-import com.kim.reservation.domain.reservation.Reservation.ReservationStatus;
+import com.kim.reservation.domain.waiting.WaitingQueueService;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminService {
 	
 	private final GoodsRepository goodsRepository;
-	private final ReservationRepository reservationRepository;
-	private final RedisTemplate<String, String> redisTemplate;
+	private final WaitingQueueService waitingQueueService;
 	
-	public AdminMonitoringDto getMonitoringData(Long goodsId) {
-		Goods goods = goodsRepository.findById(goodsId).orElseThrow();
-		
-		//1. 상태별 예약 수 조회
-		long pending = reservationRepository.countByGoodsIdAndStatus(goodsId, ReservationStatus.PEADING);
-		long confirmed= reservationRepository.countByGoodsIdAndStatus(goodsId, ReservationStatus.CONFIRMED);
-		
-		//2. Redis 대기열 인원 조회
-		String queueKey = "waiting-queue:" + goodsId;
-		Long waiting= redisTemplate.opsForZSet().zCard(queueKey);
-		
-		return new AdminMonitoringDto(
-				goods.getName(), 
-				goods.getStockQuantity(), 
-				pending, 
-				confirmed, 
-				waiting != null ? waiting : 0
-		);
-		
+	/**
+     * 대시보드용 상품 및 실시간 대기열 정보 조합
+     */
+	public List<AdminGoodsDto> getDashboardData(){
+		return goodsRepository.findAll().stream().map(goods -> {
+	        long waitCount = waitingQueueService.getWaitListCount(goods.getId());
+	        long activeCount = waitingQueueService.getActiveUserCount(goods.getId());
+	        
+	        
+	        return new AdminGoodsDto(goods, waitCount, activeCount); 
+	        
+	    }).collect(Collectors.toList());
+	}
+	
+	/**
+     * 재고 강제 업데이트
+     */
+	@Transactional
+	public void updateStock(Long goodsId, int newStock) {
+		Goods goods= goodsRepository.findById(goodsId)
+				.orElseThrow(() -> new IllegalArgumentException("상품이 없습니다."));
+        goods.setStockQuantity(newStock);
 	}
 
 }

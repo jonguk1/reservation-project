@@ -19,7 +19,7 @@ public class DataInitConfig {
             goodsRepository.save(Goods.builder()
                     .name("2025 임영웅 콘서트 티켓")
                     .price(150000)
-                    .stockQuantity(100)
+                    .stockQuantity(1)
                     .openTime(LocalDateTime.now().plusSeconds(5)) 
                     .build());
 

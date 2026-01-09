@@ -24,4 +24,16 @@ public class GoodsService {
 		return goodsRepository.findById(id)
 				.orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다. id=" + id));
 	}
+	
+	/**
+     * 관리자용: 상품 재고 강제 업데이트
+     */
+	@Transactional
+	public void updateStock(Long id,int stockQuantity) {
+		Goods goods= goodsRepository.findById(id)
+				.orElseThrow(() -> new IllegalArgumentException("해당 상품이 없습니다. id=" + id));
+		
+		//재고 업데이트
+		goods.setStockQuantity(stockQuantity);
+	}
 }

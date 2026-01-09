@@ -19,4 +19,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long>{
 
 	//상태별 예약 수 조회
 	long countByGoodsIdAndStatus(Long goodsId, ReservationStatus status);
+	
+	//나의 예약 조회
+	List<Reservation> findByUserIdOrderByReservationDateDesc(Long userId);
 }

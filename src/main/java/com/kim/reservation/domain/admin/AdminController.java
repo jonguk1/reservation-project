@@ -1,10 +1,12 @@
 package com.kim.reservation.domain.admin;
 
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,12 +14,19 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("admin")
 @RequiredArgsConstructor
 public class AdminController {
-	private final AdminService adminService;
 	
-	@GetMapping("/monitoring/{goodsId}")
-	public String monitoring(@PathVariable Long goodsId, Model model) {
-		model.addAttribute("data", adminService.getMonitoringData(goodsId));
-		return "monitoring";
-	}
+	private final AdminService adminService;
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        model.addAttribute("goodsList", adminService.getDashboardData());
+        return "dashboard";
+    }
+
+    @PostMapping("/update-stock")
+    public String updateStock(@RequestParam Long goodsId, @RequestParam int stock) {
+        adminService.updateStock(goodsId, stock);
+        return "redirect:/dashboard";
+    }
 
 }

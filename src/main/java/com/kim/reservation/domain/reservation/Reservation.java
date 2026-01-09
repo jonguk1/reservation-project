@@ -64,7 +64,7 @@ public class Reservation {
 	}
 	
 	public enum ReservationStatus{
-		PEADING,   // 재고 선점(결제 대기중)
+		PENDING,   // 재고 선점(결제 대기중)
 		CONFIRMED, // 결제 완료
 		CANCELLED, //취소
 		EXPIRED    //점유 시간 만료

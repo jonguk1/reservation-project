@@ -30,6 +30,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // H2 콘솔 및 기본 페이지들을 인증 없이 허용
                 .requestMatchers("/", "/h2-console/**", "/test-login").permitAll()
+                // 관리자 대시보드
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 // 그 외 요청은 로그인 필요
                 .anyRequest().authenticated()
             )
@@ -37,6 +39,10 @@ public class SecurityConfig {
             // 4. 로그아웃 설정
             .logout(logout -> logout
                 .logoutSuccessUrl("/")
+                .invalidateHttpSession(true) // 세션 무효화
+                .clearAuthentication(true)   // 인증 정보 삭제
+                .deleteCookies("JSESSIONID") // 쿠키 삭제
+                .permitAll()
             )
 
             // 5. OAuth2 로그인 설정

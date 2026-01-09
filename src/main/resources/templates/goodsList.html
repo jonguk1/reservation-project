@@ -9,55 +9,95 @@
         th { background-color: #f4f4f4; }
         button { background-color: #007bff; color: white; border: none; padding: 8px 16px; cursor: pointer; border-radius: 4px; }
         button:hover { background-color: #0056b3; }
+        /* 품절 버튼 스타일 */
+        .sold-out-btn { background-color: #ccc !important; cursor: not-allowed !important; }
     </style>
 </head>
 <body>
-	<div style="text-align: right; width: 80%; margin: 10px auto;">
-	    <strong>[[${session.user.name}]]</strong>님 환영합니다! 
-	    <a href="/my-reservations">[내 예약 보기]</a>
+    <div style="text-align: right; width: 80%; margin: 10px auto;">
+	    <span th:if="${session.user != null}">
+	        <strong th:text="${session.user.name}">사용자</strong>님 환영합니다! 
+	        <a href="/my-reservations" class="ml-2">[내 예약 보기]</a>
+	        
+	        <a href="/logout" style="color: gray; font-size: 0.9rem; margin-left: 10px;">[로그아웃]</a>
+	    </span>
+	    
+	    <span th:if="${session.user == null}">
+	        <a href="/oauth2/authorization/google" class="btn btn-sm btn-primary">구글 로그인</a>
+	    </span>
+	    
+	    <div th:if="${session.user != null and session.user.role == 'ROLE_ADMIN'}" style="margin: 10px 0;">
+	        <a th:href="@{/admin/dashboard}" class="btn btn-danger btn-sm">⚙️ 관리자 대시보드 접속</a>
+	    </div>
 	</div>
+
     <h2 style="text-align: center;">선착순 상품 목록</h2>
-	<table>
-	    <thead>
-	        <tr>
-	            <th>상품명</th>
-	            <th>가격</th>
-	            <th>재고</th>
-	            <th>바로 예약</th>
-	        </tr>
-	    </thead>
-	    <tbody>
-	        <tr th:each="item : ${goods}">
-	            <td>
-	                <a th:href="@{/goods/{id}(id=${item.id})}" 
-	                   th:text="${item.name}" 
-	                   style="text-decoration: none; color: #007bff; font-weight: bold;">
-	                   상품명
-	                </a>
-	            </td>
-	            <td th:text="${item.price} + '원'">10,000원</td>
-	            <td th:text="${item.stockQuantity} + '개'">50개</td>
-	            <td>
-	                <button th:onclick="confirmReserve([[${item.id}]])">예약하기</button>
-	            </td>
-	        </tr>
-	    </tbody>
-	</table>
-    <script th:if="${param.success}">
-    	alert("예약이 성공적으로 완료되었습니다!");
-	</script>
+    <table>
+        <thead>
+            <tr>
+                <th>상품명</th>
+                <th>가격</th>
+                <th>재고</th>
+                <th>바로 예약</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="item : ${goods}">
+                <td>
+                    <a th:href="@{/goods/{id}(id=${item.id})}" 
+                       th:onclick="return checkStockBeforeGo([[${item.stockQuantity}]])"
+                       th:text="${item.name}" 
+                       style="text-decoration: none; color: #007bff; font-weight: bold;">
+                    </a>
+                </td>
+                <td th:text="${item.price} + '원'"></td>
+                <td th:text="${item.stockQuantity} + '개'"></td>
+                <td>
+                    <button th:if="${item.stockQuantity > 0}" 
+                            th:onclick="|confirmReserve('${item.id}')|">예약하기</button>
+                    
+                    <button th:if="${item.stockQuantity <= 0}" 
+                            class="sold-out-btn" disabled>품절(Sold Out)</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
-	<script th:if="${param.error}">
-    	alert("예약 실패: " + [[${param.error}]]);
-	</script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // 1. 에러 알림 (예약 실패 등)
+            const errorMsg = urlParams.get('error');
+            if (errorMsg) {
+                alert("알림: " + errorMsg);
+                history.replaceState({}, null, location.pathname);
+            }
 
-	<script>
-    	// 클릭 시 한 번 더 물어보는 기능 (선택사항)
-    	function confirmReserve(goodsId) {
-        	if (confirm("정말로 이 상품을 예약하시겠습니까?")) {
-            	location.href = "/reserve?goodsId=" + goodsId;
-        	}
-    	}
-	</script>
+            // 2. 성공 알림
+            if (urlParams.get('success')) {
+                alert("예약이 성공적으로 완료되었습니다!");
+                history.replaceState({}, null, location.pathname);
+            }
+        };
+
+        // [추가] 상품명 클릭 시 재고 체크
+        function checkStockBeforeGo(stock) {
+            if (stock <= 0) {
+                alert("죄송합니다. 이 상품은 이미 품절되었습니다.");
+                return false; // 페이지 이동 차단
+            }
+            return true;
+        }
+
+        // 예약하기 버튼 클릭 시 컨펌
+        function confirmReserve(goodsId) {
+            if (confirm("정말로 이 상품을 예약하시겠습니까?")) {
+                location.href = "/reserve?goodsId=" + goodsId;
+            }
+        }
+        /*]]>*/
+    </script>
 </body>
 </html>

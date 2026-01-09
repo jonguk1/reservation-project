@@ -12,9 +12,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 @Table(name = "goods")
 @AllArgsConstructor
@@ -49,7 +51,7 @@ public class Goods {
 	// 재고 줄이기
 	public void removeStock(int quantity) {
 		int restStock = this.stockQuantity - quantity;
-		if(restStock <= 0) {
+		if(restStock < 0) {
 			throw new RuntimeException("재고가 부족합니다");
 		}
 		this.stockQuantity = restStock;
@@ -60,7 +62,12 @@ public class Goods {
         this.stockQuantity += quantity;
     }
 	
-	
+    public void setStockQuantity(int stockQuantity) {
+        if (stockQuantity < 0) {
+            throw new IllegalArgumentException("재고는 0개 이상이어야 합니다.");
+        }
+        this.stockQuantity = stockQuantity;
+    }
 	
 
 }

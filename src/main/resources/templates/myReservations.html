@@ -7,27 +7,58 @@
         table { width: 80%; border-collapse: collapse; margin: 20px auto; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
         th { background-color: #f4f4f4; }
-        .back-btn { display: block; width: 100px; margin: 20px auto; text-align: center; text-decoration: none; color: blue; }
+        .back-btn { display: inline-block; padding: 10px 20px; background-color: #f4f4f4; border: 1px solid #ddd; border-radius: 5px; text-decoration: none; color: #333; }
+        .back-btn:hover { background-color: #e9e9e9; }
+        .status-confirmed { color: green; font-weight: bold; }
+        .status-pending { color: orange; }
+        .no-data { text-align: center; padding: 50px; color: #888; }
     </style>
 </head>
 <body>
     <h2 style="text-align: center;">[[${session.user.name}]]님의 예약 내역</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>예약 번호</th>
-                <th>상품명</th>
-                <th>예약 일시</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="res : ${reservations}">
-                <td th:text="${res.id}">1</td>
-                <td th:text="${res.goods.name}">상품명</td>
-                <td th:text="${#temporals.format(res.reservationDate, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01</td>
-            </tr>
-        </tbody>
-    </table>
-    <a href="/goods" class="back-btn">상품 목록으로</a>
+    
+    <div th:if="${not #lists.isEmpty(reservations)}">
+        <table>
+			<thead>
+			    <tr>
+			        <th>예약 번호</th>
+			        <th>상품명</th>
+			        <th>결제 금액</th>
+			        <th>상태</th> <th>결제 진행</th> <th>예약 일시</th>
+			    </tr>
+			</thead>
+			<tbody>
+			    <tr th:each="res : ${reservations}">
+			        <td th:text="${res.id}">1</td>
+			        <td th:text="${res.goods.name}" style="font-weight: bold;">상품명</td>
+			        <td th:text="${#numbers.formatInteger(res.goods.price, 3, 'COMMA')} + '원'">10,000원</td>
+			        
+			        <td>
+			            <span th:if="${res.status.name() == 'CONFIRMED'}" style="color: green; font-weight: bold;">결제 완료</span>
+			            <span th:if="${res.status.name() == 'PENDING'}" style="color: orange;">결제 대기</span>
+			            <span th:if="${res.status.name() == 'CANCELLED'}" style="color: red;">취소됨</span>
+			            <span th:if="${res.status.name() == 'EXPIRED'}" style="color: gray;">시간 초과</span>
+			        </td>
+			
+			        <td>
+			            <a th:if="${res.status.name() == 'PENDING'}" 
+			               th:href="@{/reserve/re-payment(reservationId=${res.id})}" 
+			               class="btn btn-sm btn-primary">결제하기</a>
+			            <span th:unless="${res.status.name() == 'PENDING'}">-</span>
+			        </td>
+			
+			        <td th:text="${#temporals.format(res.reservationDate, 'yyyy-MM-dd HH:mm:ss')}"></td>
+			    </tr>
+			</tbody>
+        </table>
+    </div>
+
+    <div th:if="${#lists.isEmpty(reservations)}" class="no-data">
+        <p>아직 예약된 내역이 없습니다. 선착순 상품에 도전해 보세요!</p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="/goods" class="back-btn">상품 목록으로 돌아가기</a>
+    </div>
 </body>
 </html>

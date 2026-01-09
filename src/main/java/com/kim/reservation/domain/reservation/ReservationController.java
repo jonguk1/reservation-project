@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.kim.reservation.domain.goods.Goods;
 import com.kim.reservation.domain.goods.GoodsService;
+import com.kim.reservation.domain.reservation.Reservation.ReservationStatus;
 import com.kim.reservation.domain.waiting.WaitingQueueService;
 import com.kim.reservation.global.auth.SessionUser;
 
@@ -69,9 +70,14 @@ public class ReservationController {
 	        return "reserveForm";
 
 	    } catch (Exception e) {
-	    	// 예약 실패
+	    	//재고가 없거나 오류 발생 시에는 즉시 자리를 비워줌
 	        waitingQueueService.removeActiveUser(goodsId, user.getId().toString());
-	        return "redirect:/goods?error=" + URLEncoder.encode(e.getMessage(), "UTF-8");
+	        
+	        // 에러 메시지 추출
+	        String message = (e.getMessage() != null) ? e.getMessage() : "시스템 오류가 발생했습니다.";
+	        String encodedMessage = URLEncoder.encode(message, "UTF-8");
+	        
+	        return "redirect:/goods?error=" + encodedMessage;
 	    }
 	}
 	
@@ -88,7 +94,7 @@ public class ReservationController {
 		}
 		
 		// 로그인한 유저의 예약 내역만 가져와서 모델에 담기
-		List<Reservation> myReservations =reservationRepository.findByUserId(user.getId());
+		List<Reservation> myReservations =reservationService.findMyReservations(user.getId());
 		model.addAttribute("reservations",myReservations);
 		
 		return "myReservations";
@@ -100,11 +106,35 @@ public class ReservationController {
 	@PostMapping("/reserve/confirm")
 	public String confirm(@RequestParam Long reservationId) {
 		try {
+			//DB 상태를 CONFIRMED로 변경
 			reservationService.confirmReservation(reservationId);
 			return "redirect:/goods?success=confirmed";
 		}catch (Exception e) {
 			return "redirect:/goods?error=" + e.getMessage();
 		}
+	}
+	
+	
+	//마이페이지에서 결제하기
+	@GetMapping("/reserve/re-payment")
+	public String rePayment(@RequestParam Long reservationId, HttpSession session,Model model) {
+		//세션에서 현재 로그인한 유저 정보를 꺼내오기
+		SessionUser user = (SessionUser) session.getAttribute("user");
+		
+		//해당 예약 조회
+		Reservation reservation = reservationService.findById(reservationId);
+		
+		//본인의 예약인지, 그리고 여전히 PENDING 상태인지 확인
+		if(!reservation.getUser().getId().equals(user.getId())||
+			reservation.getStatus() != ReservationStatus.PENDING) {
+			return "redirect:/my-reservations?error=invalid";
+		}
+		
+		//결제 폼으로 이동
+		model.addAttribute("reservationId",reservation.getId());
+		model.addAttribute("goods",reservation.getGoods());
+		return "reserveForm";
+
 	}
 	
 	
